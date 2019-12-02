@@ -1,0 +1,62 @@
+body {
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+#field {
+    margin: 0 auto;
+    box-shadow: 15px 15px 12px rgb(78, 78, 78);
+    display: inline-block;
+    padding: 4px;
+    background-color: rgb(120, 168, 164);
+    white-space: nowrap;
+    outline: 2px solid rgb(3, 48, 43);
+}
+
+h1 {
+    font-size: 28px;
+    color: rgb(5, 61, 56);
+}
+
+.cell {
+    display: inline-block;
+    outline: 1px solid rgb(3, 48, 43);
+    margin: 2px;
+    padding: 2px;
+    color: rgba(255, 255, 255, 0);
+    text-align: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: translate(-50%, -140%) rotate(-45deg);
+    transition-duration: .8s;
+    transition-property: opacity, transform, background-color, color;
+    transform-origin: center;
+
+}
+
+.cell-appeared {
+    opacity: 1;
+    transform: translate(0, 0);
+}
+
+.cell-covered {
+    background-color: rgb(16, 207, 175);
+}
+
+.cell-covered:hover {
+    transform: translate(-10%, -10%) scale(1.2);
+    background-color: rgb(51, 179, 0);
+    box-shadow: 2px 2px 3px black;
+    outline-color: white;
+}
+
+.cell-revealed {
+    color: white;
+    background-color: rgb(14, 105, 93);
+}
+
+.cell-mined {
+    background-color: rgb(226, 53, 0);
+}
