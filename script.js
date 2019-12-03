@@ -83,11 +83,11 @@ function Model(playFieldWidth, playFieldHeight, minesAmount) {
 
 function Controller() {
     if (DEBUG)
-        model = new Model(15, 15, 5);
+        model = new Model(20, 20, 5);
     else
-        model = new Model(Number(prompt('Enter field of play width (the minimum is 10): ', '10')),
-                    Number(prompt('Enter field of play height (the minimum is 10): ', '10')),
-                    Number(prompt('Enter mine amount (the minimum is 5): ', '10')));
+        model = new Model(Number(prompt('Enter field of play width (the minimum is 10):\nВведите ширину игрового поля: (минимум — 10)', '10')),
+                    Number(prompt('Enter field of play height (the minimum is 10):\nВведите высоту игрового поля: (минимум — 10)', '10')),
+                    Number(prompt('Enter mine amount (the minimum is 5):\nВведите количество мин: (минимум — 5)', '10')));
     model.fillField();
     model.placeMines();
     view = new View(model.field);
@@ -144,7 +144,7 @@ function Controller() {
             cell.tag.style.fontWeight = 'bold';
         });
         revealAllCells(model);
-        alert('You won!!! Congratulations!');
+        alert('You\'ve won!!! Congratulations!\nУРАААААААААААА!!!');
     }
 
     function handleALoss(model) {
@@ -160,8 +160,9 @@ function Controller() {
             model.field[y].forEach(cell => {
                 cell.tag.classList.remove('cell-covered');
                 cell.tag.classList.add('cell-revealed');
-                if (cell.hasMine)
+                if (cell.hasMine) {
                     cell.tag.classList.add('cell-mined');
+                }
                 else if (cell.minesAroundAmount == 0)
                     cell.tag.style.color = 'rgb(14, 105, 93)';
             });
@@ -179,63 +180,88 @@ function Controller() {
 
 function View(field) {
     this.fieldTag = document.getElementById('field');
-    const mineCharacter = '😢'
+    const mineCharacter = '☹'
     this.WinMineCharacter = '✔'
     this.theLongestFieldSide = field[0].length > field.length ? [field[0].length, 'wIsLonger'] : [field.length, 'hIsLonger'];
     if (field[0].length == field.length)
         this.theLongestFieldSide[1] = 'equal';
+
     // This method is not completely tested because I almost broke my mind against it all...
-    this.getCellSize = (oneOfcellTags) => {
-        const cellMargin = Number(getComputedStyle(oneOfcellTags).margin.slice(0, -2));
-        const cellPadding = Number(getComputedStyle(oneOfcellTags).padding.slice(0, -2));
+    this.getCellSize = (oneOfcellTags, shouldRemoveCellMargin) => {
+        let cellMargin;
+        if (shouldRemoveCellMargin) {
+            cellMargin = 0;
+            for (let y = 0; y < field.length; y++) {
+                for (let x = 0; x < field[y].length; x++) {
+                    field[y][x].tag.style.margin = '0';
+                }
+            }
+        } else {
+            cellMargin = Number(getComputedStyle(oneOfcellTags).margin.slice(0, -2));
+        }
         const fieldPadding = Number(getComputedStyle(this.fieldTag).padding.slice(0, -2));
-        const fieldMargin = 40;
-        const userScreenProportions = document.body.clientWidth > window.screen.availHeight ? 'wide' : 'portrait';
+        const fieldAdditionalMargin = 40;
+        const userScreenProportions = window.innerWidth > window.innerHeight ? 'wide' : 'portrait';
         const offsetTop = this.fieldTag.offsetTop;
-        const screenHeightFieldSpace = window.screen.availHeight - cellMargin - cellPadding - fieldPadding * 2 - fieldMargin - offsetTop;
-        const screenWidthFieldSpace = document.body.clientWidth - cellMargin - cellPadding - fieldPadding * 2 - fieldMargin;
-        // const sizeThroughScreenHeightDividedIintoLongest = Math.round(screenHeightFieldSpace / (this.theLongestFieldSide[0] + cellMargin));
+        const screenHeightFieldSpace = window.innerHeight - cellMargin - fieldPadding * 2 - fieldAdditionalMargin - offsetTop - this.theLongestFieldSide[0] * cellMargin;
+        const screenWidthFieldSpace = window.innerWidth - cellMargin - fieldPadding * 2 - fieldAdditionalMargin - this.theLongestFieldSide[0] * cellMargin;
         if (this.theLongestFieldSide[1] == 'equal') {
-            console.log('equal');
-            console.log('clientWidth: ' + document.body.clientWidth);
-            console.log('clientHeight: ' + window.screen.availHeight);
-            console.log('offsetTop: ' + offsetTop);
             if (userScreenProportions == 'wide') {
-                return screenHeightFieldSpace / (this.theLongestFieldSide[0] + cellMargin + cellPadding) - cellPadding - cellMargin;
+                const result = screenHeightFieldSpace / this.theLongestFieldSide[0] - cellMargin;
+                // Remove cell margin if cells are small.
+                return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
             } else {
-                return screenWidthFieldSpace / (this.theLongestFieldSide[0] + cellMargin + cellPadding) - cellPadding - cellMargin;
+                const result = screenWidthFieldSpace / this.theLongestFieldSide[0] - cellMargin;
+                return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
             }
         }
-        else if (this.theLongestFieldSide[1] == 'wIsLonger')
-            return screenWidthFieldSpace / (this.theLongestFieldSide[0] + cellMargin + cellPadding) - cellPadding - cellMargin;
-        else
-            return screenWidthFieldSpace / (this.theLongestFieldSide[0] + cellMargin + cellPadding) - cellPadding - cellMargin;
+        else if (this.theLongestFieldSide[1] == 'wIsLonger') {
+            result = screenWidthFieldSpace / this.theLongestFieldSide[0] - cellMargin;
+            return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+        }
+        else {
+            const result = screenHeightFieldSpace / this.theLongestFieldSide[0] - cellMargin;
+            return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+        }
     }
 
     for (let y = 0; y < field.length; y++) {
+        let row = document.createElement('div');
+        row.classList.add('field-row');
         field[y].forEach(cell => {
             let cellTag = document.createElement('div');
             cellTag.classList.add('cell', 'cell-covered');
-            if (cell.hasMine) {
+            if (cell.hasMine)
                 cellTag.appendChild(document.createTextNode(mineCharacter));
-            }
             else
-                cellTag.appendChild(document.createTextNode(cell.minesAroundAmount));
-            this.fieldTag.appendChild(cellTag);
+                cellTag.appendChild(document.createTextNode(cell.minesAroundAmount ? cell.minesAroundAmount : ''));
+            row.appendChild(cellTag);
             cell.tag = cellTag;
         });
-        this.fieldTag.appendChild(document.createElement('br'));
+        this.fieldTag.appendChild(row);
     }
 
     this.stylizeAndScaleCells = () => {
-        const cellSize = this.getCellSize(field[0][0].tag);
+        const cellSize = this.getCellSize(field[0][0].tag, false);
+        const cellPadding = Number(getComputedStyle(field[0][0].tag).padding.slice(0, -2));
+        const lineHeightAdditionalOffset = 2;
         for (let y = 0; y < field.length; y++) {
             for (let x = 0; x < field[y].length; x++) {
                 field[y][x].tag.style.height = field[y][x].tag.style.width = cellSize + 'px';
-                field[y][x].tag.style.lineHeight = cellSize + 'px';
+                field[y][x].tag.style.lineHeight = cellSize - lineHeightAdditionalOffset * cellPadding + 'px';
                 field[y][x].tag.style.fontSize = cellSize + 'px';
-                field[y][x].tag.style.transitionDelay = (y / 4 * this.theLongestFieldSide[0] + x) / 40 + 's';
+                field[y][x].tag.style.transitionDelay = (y / (field.length / 2) * this.theLongestFieldSide[0] + x) / 40 + 's';
                 field[y][x].tag.classList.add('cell-appeared');
+
+                if (field[y][x].hasMine) {
+                    /*
+                    Resize the mined cells font size if they look too large. Now ☹ looks OK.
+                    But when cells are too small there are problems with characters alignment.
+                    */
+                    const cellSizeToFontSizeRatio = 1;
+                    const fontSize = getComputedStyle(field[y][x].tag).fontSize.slice(0, -2);
+                    field[y][x].tag.style.fontSize = fontSize * cellSizeToFontSizeRatio + 'px';
+                }
             }
         }
         // Reset transition delay.
@@ -244,7 +270,7 @@ function View(field) {
         for (let y = 0; y < field.length; y++) {
             for (let x = 0; x < field[y].length; x++) {
                 field[y][x].tag.style.transitionDelay = '0s';
-                field[y][x].tag.style.transitionDuration = '.15s';
+                field[y][x].tag.style.transitionDuration = '.9s';
             }
         }
         }, (initialAnimationDelay));
