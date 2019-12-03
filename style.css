@@ -13,6 +13,7 @@ body {
     background-color: rgb(120, 168, 164);
     white-space: nowrap;
     outline: 2px solid rgb(3, 48, 43);
+    margin-bottom: 30px;
 }
 
 h1 {
@@ -21,6 +22,9 @@ h1 {
 }
 
 .cell {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    user-select: none;
     display: inline-block;
     outline: 1px solid rgb(3, 48, 43);
     margin: 2px;
