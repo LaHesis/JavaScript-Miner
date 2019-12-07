@@ -7,16 +7,21 @@ function Cell(x, y, hasMine = false, minesAroundAmount = 0) {
     this.minesAroundAmount = minesAroundAmount;
 }
 
-function Model(playFieldWidth, playFieldHeight, minesAmount) {
-    this.playFieldWidth = (playFieldWidth >= 10) ? playFieldWidth : 10;
-    this.playFieldHeight = (playFieldHeight >= 10) ? playFieldHeight : 10;
+function Model(fieldWidth, fieldHeight, minesAmount) {
+    this.fieldWidth = (fieldWidth >= 10) ? fieldWidth : 10;
+    this.fieldHeight = (fieldHeight >= 10) ? fieldHeight : 10;
     this.minesAmount = (minesAmount >= 5) ? minesAmount : 5;
+    const fieldSquare = this.fieldHeight * this.fieldWidth;
+    if (this.minesAmount >= fieldSquare) {
+        alert('The mine amound is more than or equal to the total cell amount and will be set to total cell amound divided into 2.\nКоличество мин больше общего количества ячеек, оно будет установлено в половину от количества ячеек.')
+        this.minesAmount = Math.round(fieldSquare / 2);
+    }
 
     this.mineAllocationTryLimit = 4000;
     this.field = [];
     this.minedCells = [];
     this.openedCellsAmount = 0;
-    this.maxNotMinedOpenedCellsAmount = this.playFieldHeight * this.playFieldWidth - minesAmount;
+    this.maxNotMinedOpenedCellsAmount = this.fieldHeight * this.fieldWidth - minesAmount;
     this.gameIsOver = false;
     this.debug = true;
 
@@ -40,38 +45,50 @@ function Model(playFieldWidth, playFieldHeight, minesAmount) {
     }
 
     this.placeMines = () => {
-        let tryCount = 0;
-        const field = this.field;
+        /*
+        It's a popping down 2-d array of cells which stores coordinates of main field cells without mines.
+        Its length and row lengths allow to generate random available cell.
+        */
+        let availableCells = [];
+        for (let y = 0; y < this.fieldHeight; y++) {
+            availableCells[y] = [];
+            for (let x = 0; x < this.fieldWidth; x++) {
+                availableCells[y][x] = [y, x];
+            }
+        }
+
         while (this.minedCells.length < this.minesAmount) {
-            if (tryCount > this.mineAllocationTryLimit) {
-                alert('Too many mines! Try to decrease the amount)');
-                break;
-            }
-            const y = Math.floor(Math.random() * this.playFieldHeight);
-            const x = Math.floor(Math.random() * this.playFieldWidth);
-            let theCell = field[y][x];
-            if (theCell.hasMine == false) {
-                theCell.hasMine = true;
-                this.minedCells.push(theCell);
-            }
-            tryCount++;
+            const ranY = Math.floor(Math.random() * availableCells.length);
+            const ranX = Math.floor(Math.random() * availableCells[ranY].length);
+
+            // Find out the cell coordinates.
+            const realY = availableCells[ranY][ranX][0];
+            const realX = availableCells[ranY][ranX][1];
+            let theCell = this.field[realY][realX];
+
+            theCell.hasMine = true;
+            this.minedCells.push(theCell);
+
+            availableCells[ranY].splice(ranX, 1);
+            if (availableCells[ranY].length == 0)
+                availableCells.splice(ranY, 1);
         }
 
         // minesAroundAmount computing.
-        for (let y = 0; y < this.playFieldHeight; y++) {
-            for (let x = 0; x < this.playFieldWidth; x++) {
-                this.getCellsAroundCell(field[y][x])
+        for (let y = 0; y < this.fieldHeight; y++) {
+            for (let x = 0; x < this.fieldWidth; x++) {
+                this.getCellsAroundCell(this.field[y][x])
                     .filter(cell => cell.hasMine)
-                    .forEach(cell => field[y][x].minesAroundAmount++);
+                    .forEach(cell => this.field[y][x].minesAroundAmount++);
             }
         }
     }
 
     this.fillField = () => {
         // Cell objects creation.
-        for (let y = 0; y < this.playFieldHeight; y++) {
+        for (let y = 0; y < this.fieldHeight; y++) {
             let row = []
-            for (let x = 0; x < this.playFieldWidth; x++) {
+            for (let x = 0; x < this.fieldWidth; x++) {
                 let newCell = new Cell(x, y);
                 row.push(newCell);
             }
@@ -151,7 +168,7 @@ function Controller() {
         if (!DEBUG) {
             model.gameIsOver = true;
             revealAllCells(model);
-            alert('Sorry, but you lost(. You can try one more time if you wish and have time.');
+            alert('Sorry, but you lost(. You can try one more time if you wish and have time.\nИзвините, но вы проиграли(.');
         }
     }
 
