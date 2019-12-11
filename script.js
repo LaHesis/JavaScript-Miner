@@ -5,6 +5,7 @@ function Cell(x, y, hasMine = false, minesAroundAmount = 0) {
     this.y = y;
     this.hasMine = hasMine;
     this.minesAroundAmount = minesAroundAmount;
+    this.markedAsMined = false;
 }
 
 function Model(fieldWidth, fieldHeight, minesAmount) {
@@ -99,10 +100,13 @@ function Model(fieldWidth, fieldHeight, minesAmount) {
 
 
 function Controller() {
+    const introMessageEN = 'Hi! Use left mouse button to open cells and right button to mark cells as mined. The numbers in cells designite amount of mines that adjacent cells have.';
+    const introMessageRU = 'Привет! Используй левую клавишу мыши, чтобы открывать ячейки, и правую, чтобы помечать предположительно заминированные ячейки. Цифры в ячейках обозначают количество мин, находящихся в смежных ячейках.';
+    const introMessage = `${introMessageEN}\n\n${introMessageRU}\n\n`;
     if (DEBUG)
-        model = new Model(20, 20, 5);
+        model = new Model(14, 14, 12);
     else
-        model = new Model(Number(prompt('Enter field of play width (the minimum is 10):\nВведите ширину игрового поля: (минимум — 10)', '10')),
+        model = new Model(Number(prompt(introMessage + 'Enter field of play width (the minimum is 10):\nВведите ширину игрового поля: (минимум — 10)', '10')),
                     Number(prompt('Enter field of play height (the minimum is 10):\nВведите высоту игрового поля: (минимум — 10)', '10')),
                     Number(prompt('Enter mine amount (the minimum is 5):\nВведите количество мин: (минимум — 5)', '10')));
     model.fillField();
@@ -110,8 +114,12 @@ function Controller() {
     view = new View(model.field);
     view.stylizeAndScaleCells()
 
+    document.body.addEventListener('contextmenu', event => {
+        event.preventDefault();
+    })
+
     function openACell(cell, model) {
-        if (!model.gameIsOver) {
+        if (!model.gameIsOver && !cell.markedAsMined) {
             if (!cell.hasMine) model.openedCellsAmount++;
             if (model.openedCellsAmount == model.maxNotMinedOpenedCellsAmount) {
                 handleAWin(model);
@@ -150,15 +158,25 @@ function Controller() {
                     }
                 } while (cellsToReveal.length);
             });
+            cell.tag.addEventListener('contextmenu', event => {
+                markAsMined(cell);
+            })
         });
+    }
+
+    function markAsMined(cell) {
+        if (cell.tag.classList.contains('cell-covered')) {
+            cell.markedAsMined = !cell.markedAsMined;
+            cell.tag.classList.toggle('marked-as-mined');
+            cell.tag.setAttribute('character', view.markedAsMinedCharacter);
+        }
     }
 
     function handleAWin(model) {
         model.gameIsOver = true;
         model.minedCells.forEach(cell => {
-            cell.tag.innerText = view.WinMineCharacter;
-            cell.tag.style.backgroundColor = '#0d0';
-            cell.tag.style.fontWeight = 'bold';
+            cell.tag.innerText = view.winMineCharacter;
+            cell.tag.classList.add('cleared-up-after-win');
         });
         revealAllCells(model);
         alert('You\'ve won!!! Congratulations!\nУРАААААААААААА!!!');
@@ -176,6 +194,7 @@ function Controller() {
         for (let y = 0; y < model.field.length; y++) {
             model.field[y].forEach(cell => {
                 cell.tag.classList.remove('cell-covered');
+                cell.tag.classList.remove('marked-as-mined');
                 cell.tag.classList.add('cell-revealed');
                 if (cell.hasMine) {
                     cell.tag.classList.add('cell-mined');
@@ -197,8 +216,9 @@ function Controller() {
 
 function View(field) {
     this.fieldTag = document.getElementById('field');
-    const mineCharacter = '☹'
-    this.WinMineCharacter = '✔'
+    const mineCharacter = '☹';
+    this.winMineCharacter = '✔';
+    this.markedAsMinedCharacter = '👌'; // ⛳🚩👌
     this.theLongestFieldSide = field[0].length > field.length ? [field[0].length, 'wIsLonger'] : [field.length, 'hIsLonger'];
     if (field[0].length == field.length)
         this.theLongestFieldSide[1] = 'equal';
@@ -222,23 +242,25 @@ function View(field) {
         const offsetTop = this.fieldTag.offsetTop;
         const screenHeightFieldSpace = window.innerHeight - cellMargin - fieldPadding * 2 - fieldAdditionalMargin - offsetTop - this.theLongestFieldSide[0] * cellMargin;
         const screenWidthFieldSpace = window.innerWidth - cellMargin - fieldPadding * 2 - fieldAdditionalMargin - this.theLongestFieldSide[0] * cellMargin;
+        // When evaluated cell size is less, cell margin will be removed.
+        const noMarginModeCellMaxSize = 30;
         if (this.theLongestFieldSide[1] == 'equal') {
             if (userScreenProportions == 'wide') {
                 const result = screenHeightFieldSpace / this.theLongestFieldSide[0] - cellMargin;
                 // Remove cell margin if cells are small.
-                return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+                return (result > noMarginModeCellMaxSize || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
             } else {
                 const result = screenWidthFieldSpace / this.theLongestFieldSide[0] - cellMargin;
-                return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+                return (result > noMarginModeCellMaxSize || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
             }
         }
         else if (this.theLongestFieldSide[1] == 'wIsLonger') {
             result = screenWidthFieldSpace / this.theLongestFieldSide[0] - cellMargin;
-            return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+            return (result > noMarginModeCellMaxSize || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
         }
         else {
             const result = screenHeightFieldSpace / this.theLongestFieldSide[0] - cellMargin;
-            return (result > 18 || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
+            return (result > noMarginModeCellMaxSize || shouldRemoveCellMargin) ? result : this.getCellSize(oneOfcellTags, true);
         }
     }
 
@@ -259,35 +281,29 @@ function View(field) {
     }
 
     this.stylizeAndScaleCells = () => {
-        const cellSize = this.getCellSize(field[0][0].tag, false);
+        const minCellSize = 20;
+        let cellSize = this.getCellSize(field[0][0].tag, false);
+        if (cellSize < minCellSize)
+            cellSize = minCellSize;
         const cellPadding = Number(getComputedStyle(field[0][0].tag).padding.slice(0, -2));
-        const lineHeightAdditionalOffset = 2;
+        const rowsTransitionRatio = 4;
+        const fontScaleDownRatio = 1;
         for (let y = 0; y < field.length; y++) {
             for (let x = 0; x < field[y].length; x++) {
                 field[y][x].tag.style.height = field[y][x].tag.style.width = cellSize + 'px';
-                field[y][x].tag.style.lineHeight = cellSize - lineHeightAdditionalOffset * cellPadding + 'px';
-                field[y][x].tag.style.fontSize = cellSize + 'px';
-                field[y][x].tag.style.transitionDelay = (y / (field.length / 2) * this.theLongestFieldSide[0] + x) / 40 + 's';
+                field[y][x].tag.style.lineHeight = cellSize - cellPadding + 'px';
+                field[y][x].tag.style.fontSize = (cellSize - cellPadding) * fontScaleDownRatio + 'px';
+                field[y][x].tag.style.transitionDelay = (y / (field.length / rowsTransitionRatio) * this.theLongestFieldSide[0] + x) / 40 + 's';
                 field[y][x].tag.classList.add('cell-appeared');
-
-                if (field[y][x].hasMine) {
-                    /*
-                    Resize the mined cells font size if they look too large. Now ☹ looks OK.
-                    But when cells are too small there are problems with characters alignment.
-                    */
-                    const cellSizeToFontSizeRatio = 1;
-                    const fontSize = getComputedStyle(field[y][x].tag).fontSize.slice(0, -2);
-                    field[y][x].tag.style.fontSize = fontSize * cellSizeToFontSizeRatio + 'px';
-                }
             }
         }
-        // Reset transition delay.
+        // Reset transition delay after initial transition.
         const initialAnimationDelay = 3;
         setTimeout(() => {
         for (let y = 0; y < field.length; y++) {
             for (let x = 0; x < field[y].length; x++) {
                 field[y][x].tag.style.transitionDelay = '0s';
-                field[y][x].tag.style.transitionDuration = '.9s';
+                field[y][x].tag.style.transitionDuration = '.5s';
             }
         }
         }, (initialAnimationDelay));

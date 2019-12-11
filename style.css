@@ -7,7 +7,7 @@ body {
 
 #field {
     margin: 0 auto;
-    box-shadow: 15px 15px 7px rgb(134, 134, 134);
+    box-shadow: 10px 10px 5px rgb(134, 134, 134);
     display: inline-block;
     padding: 4px;
     background-color: rgb(120, 168, 164);
@@ -28,7 +28,8 @@ h1 {
     border: 1px solid black;
     margin: 0;
     padding: 5px 30px;
-    box-shadow: 3px 3px 5px rgb(134, 134, 134);
+    box-shadow: 3px 3px 5px rgb(102, 102, 102);
+    border-radius: 12px;
 }
 
 .field-row {
@@ -38,13 +39,14 @@ h1 {
 }
 
 .cell {
-    min-width: 17px;
-    min-height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
     box-sizing: border-box;
     -moz-user-select: none;
     -khtml-user-select: none;
     user-select: none;
-    display: inline-block;
     outline: 1px solid rgb(3, 48, 43);
     margin: 2px;
     padding: 2px;
@@ -54,8 +56,33 @@ h1 {
     opacity: 0;
     transform: translate(-50%, -140%) rotate(-45deg);
     transition-duration: .8s;
-    transition-property: opacity, transform, background-color, color;
+    transition-property: opacity, transform, background-color, color, text-shadow, outline-color;
     transform-origin: center;
+}
+
+/* Pseudo-element for marking cell as mined, initially hidden */
+.cell::before {
+    content: attr(character);
+    color: white;
+    font-size: 90%;
+    width: 100%;
+    height: 100%;
+    text-shadow: 2px 2px 2px rgb(0, 0, 0);
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: all .2s;
+    transform: scale(0);
+}
+
+/* and visible when has the css class */
+.marked-as-mined::before {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .cell-appeared {
@@ -64,19 +91,25 @@ h1 {
 }
 
 .cell-covered {
-    background-color: rgb(16, 207, 175);
+    background-color: rgb(88, 214, 176);
 }
 
-.cell-covered:hover {
-    background-color: rgb(80, 255, 217);
+.cell-covered:not(.marked-as-mined):hover {
+    background-color: rgb(30, 255, 206);
     outline-color: white;
 }
 
 .cell-revealed {
     color: white;
     background-color: rgb(14, 105, 93);
+    text-shadow: 2px 2px 2px rgb(0, 0, 0);
 }
 
 .cell-mined {
-    background-color: rgb(226, 53, 0);
+    background-color: rgb(189, 60, 0);
+}
+
+.cleared-up-after-win {
+    background-color: rgb(0, 182, 0);
+    font-weight: 'bold';
 }
