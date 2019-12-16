@@ -1,4 +1,4 @@
-# Miner Logic Game JavaScript Implementation
+# [Miner Logic Game JavaScript Implementation](https://lahesis.github.io/JavaScript-Miner/)
 
 This is a scalable JavaScript Miner with a kind of MVC architecture and no side libraries are used. It classic Miner, so mines are located before the user would try to open a cell. The cell size is evaluated according to user screen size, screen proportions and playing area proportions.
 
@@ -14,9 +14,9 @@ default input settings and a win: 10 width, 10 height, 10 mines:
 
 ![10 width, 25 height, 30 mines](<https://github.com/LaHesis/JavaScript-Miner/raw/master/demo/10 25 30.png>)
 
-30 width, 30 height, 100 mines:
+25 width, 25 height, 70 mines:
 
-![30 width, 30 height, 100 mines](<https://github.com/LaHesis/JavaScript-Miner/raw/master/demo/30 30 100.png>)
+![25 width, 25 height, 70 mines](<https://github.com/LaHesis/JavaScript-Miner/raw/master/demo/25 25 70.png>)
 
 30 width, 30 height, 100 mines, loss:
 
