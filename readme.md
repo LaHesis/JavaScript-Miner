@@ -29,3 +29,7 @@ default input settings and a win: 10 width, 10 height, 10 mines:
 14 width, 10 height, 12 mines, player uses mine marks:
 
 ![14 10 12 player uses mine marks](<https://github.com/LaHesis/JavaScript-Miner/raw/master/demo/14 10 12 player uses mine marks.png>)
+
+initial animations:
+
+![initial animations](<https://github.com/LaHesis/JavaScript-Miner/raw/master/demo/initial animations.png>)

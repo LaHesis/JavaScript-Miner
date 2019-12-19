@@ -5,7 +5,7 @@ body {
     margin: 0;
 }
 
-#field {
+#board {
     margin: 0 25px 20px 20px;
     box-shadow: 10px 10px 4px rgb(35, 107, 77);
     display: inline-block;
@@ -17,13 +17,12 @@ body {
 }
 
 .title-wrapper {
-    margin: 10px;
-    padding: 4px;
+    margin: 12px;
 }
 
 h1 {
     white-space: nowrap;
-    font-size: 28px;
+    font-size: 22px;
     text-shadow: 2px 2px 1px rgb(0, 0, 0);
     color: white;
     background-color: rgb(15, 134, 116);
@@ -38,7 +37,7 @@ h1 {
     user-select: none;
 }
 
-.field-row {
+.board-row {
     /* Without it there is some strange top padding.
     And "padding-top: 0" doesn't solve that problem. */
     display: flex;
